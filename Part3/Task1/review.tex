@@ -1,0 +1,92 @@
+\documentclass[UTF8]{article}
+\usepackage{xeCJK}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\title{FinCast: 基于基础模型的金融时序预测文献综述}
+\author{罗新锐}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{三大挑战}
+金融时序预测在经济稳定、政策制定与投资决策中具有关键作用。然而，该领域长期面临三大核心挑战：
+
+\begin{enumerate}
+  \item \textbf{时间非平稳性（Temporal Non-stationarity）}：金融市场分布会随时间变化，受宏观经济、政策、投资者行为等因素影响。
+  \item \textbf{多领域异质性（Multi-domain Diversity）}：股票、外汇、期货、加密货币等金融领域各自具有不同的模式与规律。
+  \item \textbf{多时间分辨率（Multi-temporal Resolution）}：金融数据的时间尺度跨度大，从秒级高频交易到月度经济指标。
+\end{enumerate}
+
+传统模型（如ARIMA、GARCH）在非线性建模和模式迁移方面能力有限，而深度学习方法虽具强大表示力，但容易过拟合且泛化性弱。
+
+\section{论文核心创新与贡献}
+FinCast（Zhu et al., 2025）提出了首个针对金融时序的基础模型（foundation model），其创新点包括：
+
+\begin{itemize}
+  \item 引入 \textbf{Point-Quantile Loss (PQ-loss)}，联合优化点预测与分位数预测，提高模型在非平稳条件下的鲁棒性；
+  \item 设计 \textbf{Token级稀疏专家混合（Sparse Mixture-of-Experts, MoE）} 机制，使模型能在不同金融领域中动态选择专家；
+  \item 引入 \textbf{可学习频率嵌入（Learnable Frequency Embedding）}，用于编码时间分辨率信息，提升对多频率数据的适应能力；
+  \item 在零样本（Zero-shot）预测中显著超越现有SOTA模型，平均MSE下降约20\%，MAE下降约23\%。
+\end{itemize}
+
+\section{FinCast 模型架构与关键组件}
+FinCast 为 \textbf{decoder-only Transformer} 架构，主要由以下三个模块组成：
+
+\subsection{输入模块（Input Tokenization Block）}
+原始时间序列首先经过实例归一化（Instance Normalization）与残差多层感知机（Residual MLP）编码，随后加入频率嵌入：
+\[
+h_{input} = \text{ResidualMLP}(\tilde{X}) + \text{Embed}_{freq}(f)
+\]
+其中 $\text{Embed}_{freq}$ 为可学习的频率向量。
+
+\subsection{解码器主体（Decoder MOE Backbone）}
+采用因果自注意力（Causal Self-Attention）保证自回归一致性，每个token仅关注当前及过去信息：
+\[
+\text{Scores} = \text{softmax}(QK^\top + M)
+\]
+并通过稀疏专家层（Sparse MoE）实现动态路由与专家特化：
+\[
+\text{MoE}(h_n) = \sum_i g_{i,n} \cdot \text{MLP}_i(h_n)
+\]
+
+\subsection{输出模块（Output Block）}
+输出层通过残差MLP映射至预测空间，并进行逆归一化以恢复原始尺度：
+\[
+Y = \hat{y} \cdot \sigma + \mu
+\]
+
+\section{与传统时序模型的对比}
+表~\ref{tab:comparison} 对比了 FinCast 与常见时序预测模型（如 ARIMA、LSTM）在关键特性上的差异。
+
+\begin{table}[h]
+\centering
+\caption{FinCast 与传统模型比较}
+\label{tab:comparison}
+\begin{tabular}{@{}llll@{}}
+\toprule
+模型 & 核心思想 & 优点 & 局限性 \\ \midrule
+ARIMA & 线性自回归 & 解释性强 & 难处理非线性、非平稳数据 \\
+LSTM & 序列记忆 & 捕获短期依赖 & 训练慢、长依赖衰减 \\
+FinCast & 基础模型+MoE+PQ-loss & 泛化强、跨领域、抗噪声 & 训练成本高、需大规模数据 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\section{个人思考与改进方向}
+抱歉，学长，这里缺失可能是知识面还太窄了，并没有什么特别的idea
+\section{结论}
+FinCast 通过结合 Transformer、MoE 与 PQ-loss 的创新设计，实现了金融时序预测领域的重要突破。它不仅能在无微调的条件下跨领域泛化，还为构建通用金融AI模型提供了范式参考。
+
+\begin{thebibliography}{9}
+\bibitem{fincast}
+Zhuohang Zhu, Haodong Chen, Qiang Qu, and Vera Chung.
+\textit{FinCast: A Foundation Model for Financial Time-Series Forecasting.}
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management (CIKM ’25), 2025.
+\url{https://arxiv.org/abs/2508.19609v1}
+
+\end{thebibliography}
+
+\end{document}
